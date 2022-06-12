@@ -46,36 +46,28 @@ extern bool Parse(LoggerLevel* level, const char* string);
 #define LOG_ALWAYS(FORMAT, ...)		INTERNAL_LOGGER(LOGGER_LEVEL_ALWAYS, FORMAT, ##__VA_ARGS__)
 
 
-extern const char* logger_get_filename(const char* file_path);
-extern bool logger_set_level(const char* zone_name, LoggerLevel level);
-extern void logger_show_levels();
-
-
 struct LoggerZone
 {
 	LoggerLevel level;
-	const char* filename;
+	const char* zone;
 	struct LoggerZone* next;
 };
 typedef struct LoggerZone LoggerZone;
 
 
-extern void logger_initialize_zone(LoggerZone* zone, const char* base_name);
+#define LOGGER_ZONE(ZONE) static LoggerZone g_logger_zone = { LOGGER_LEVEL_INVALID, NULL, NULL }; static __attribute__((constructor)) void logger_init_constructor_fn() { logger_internal_initialize_zone(&g_logger_zone, #ZONE); } static_assert(true, "")
 
-static LoggerZone g_logger_zone = { LOGGER_LEVEL_INVALID, NULL, NULL };
 
-static bool logger_is_active(LoggerLevel level)
-{
-	if (g_logger_zone.level == LOGGER_LEVEL_INVALID)
-		logger_initialize_zone(&g_logger_zone, __BASE_FILE__);
-	return (level >= g_logger_zone.level);
-}
+#define INTERNAL_LOGGER(LEVEL, FORMAT, ...) do { if (LEVEL >= g_logger_zone.level) logger_format_message(LEVEL, g_logger_zone.zone, FORMAT, ##__VA_ARGS__); } while (0)
 
-#define INTERNAL_LOGGER(LEVEL, FORMAT, ...) do { if (logger_is_active(LEVEL)) logger_format_message(LEVEL, __BASE_FILE__, FORMAT, ##__VA_ARGS__); } while (0)
+
+extern void logger_internal_initialize_zone(LoggerZone* zone, const char* zone_name);
+extern bool logger_set_level(const char* zone_name, LoggerLevel level);
+extern void logger_show_zones();
 
 
 // The application must override this method.
-extern void logger_format_message(LoggerLevel level, const char* filename, const char* format, ...) __attribute__ ((format (printf, 3, 4)));
+extern void logger_format_message(LoggerLevel level, const char* zone, const char* format, ...) __attribute__ ((format (printf, 3, 4)));
 
 
 #ifdef __cplusplus

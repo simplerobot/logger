@@ -4,17 +4,21 @@
 #include <cstdarg>
 #include <string>
 #include <vector>
+#include <algorithm>
+
+
+LOGGER_ZONE(LOGGER_TEST);
 
 
 static std::vector<std::string> g_logs;
 
-extern void logger_format_message(LoggerLevel level, const char* filename, const char* format, ...)
+extern void logger_format_message(LoggerLevel level, const char* zone, const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
 
 	std::ostringstream out;
-	out << ToString(level) << " " << logger_get_filename(filename) << " ";
+	out << ToString(level) << " " << zone << " ";
 	while (*format != 0)
 	{
 		char c = *(format++);
@@ -37,7 +41,7 @@ extern void logger_format_message(LoggerLevel level, const char* filename, const
 	va_end(args);
 
 	g_logs.push_back(out.str());
-	std::puts(out.str().c_str());
+//	std::puts(out.str().c_str());
 }
 
 
@@ -54,18 +58,18 @@ TEST_CASE(logger_happy_case)
 	LOG_TRACE("Trace");
 
 	ASSERT(g_logs.size() == 4);
-	ASSERT(g_logs[0] == "ALWAYS logger_tests.cpp Always");
-	ASSERT(g_logs[1] == "FATAL logger_tests.cpp Fatal");
-	ASSERT(g_logs[2] == "ERROR logger_tests.cpp Error");
-	ASSERT(g_logs[3] == "WARN logger_tests.cpp Warn");
+	ASSERT(g_logs[0] == "ALWAYS LOGGER_TEST Always");
+	ASSERT(g_logs[1] == "FATAL LOGGER_TEST Fatal");
+	ASSERT(g_logs[2] == "ERROR LOGGER_TEST Error");
+	ASSERT(g_logs[3] == "WARN LOGGER_TEST Warn");
 }
 
-TEST_CASE(logger_show_levels)
+TEST_CASE(logger_show_zones)
 {
 	g_logs.clear();
 
-	logger_show_levels();
+	logger_show_zones();
 
-	ASSERT(g_logs.size() == 1);
-	ASSERT(g_logs[0] == "ALWAYS logger.c Zone 'logger_tests.cpp' log level WARN.");
+	ASSERT(std::find(g_logs.begin(), g_logs.end(), "ALWAYS LOGGER Zone 'LOGGER' log level WARN.") != g_logs.end());
+	ASSERT(std::find(g_logs.begin(), g_logs.end(), "ALWAYS LOGGER Zone 'LOGGER_TEST' log level WARN.") != g_logs.end());
 }

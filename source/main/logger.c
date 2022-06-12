@@ -2,6 +2,9 @@
 #include <string.h>
 
 
+LOGGER_ZONE(LOGGER);
+
+
 #ifndef DEFAULT_LOGGER_LEVEL
 #define DEFAULT_LOGGER_LEVEL LOGGER_LEVEL_WARN
 #endif
@@ -43,45 +46,35 @@ extern bool Parse(LoggerLevel* level, const char* string)
 	return false;
 }
 
-extern const char* logger_get_filename(const char* file_path)
+extern void logger_internal_initialize_zone(LoggerZone* zone, const char* zone_name)
 {
-	const char* result = file_path;
-	for (size_t i = 0; file_path[i] != 0; i++)
-		if (file_path[i] == '/')
-			result = file_path + i + 1;
-	return result;
-}
-
-extern void logger_initialize_zone(LoggerZone* zone, const char* base_name)
-{
-	if (zone->level == LOGGER_LEVEL_INVALID)
-	{
-		zone->level = DEFAULT_LOGGER_LEVEL;
-		zone->filename = logger_get_filename(base_name);
-		zone->next = g_logger_zone_list;
-		g_logger_zone_list = zone;
-	}
+	zone->level = DEFAULT_LOGGER_LEVEL;
+	zone->zone = zone_name;
+	zone->next = g_logger_zone_list;
+	g_logger_zone_list = zone;
 }
 
 extern bool logger_set_level(const char* zone_name, LoggerLevel level)
 {
+	bool result = false;
 	for (LoggerZone* cursor = g_logger_zone_list; cursor != NULL; cursor = cursor->next)
 	{
-		if (strcmp(zone_name, cursor->filename) == 0)
+		if (strcmp(zone_name, cursor->zone) == 0)
 		{
 			cursor->level = level;
 			LOG_ALWAYS("Set zone '%s' log level to %s.", zone_name, ToString(level));
-			return true;
+			result = true;
 		}
 	}
 
-	LOG_ALWAYS("Zone '%s' not found.", zone_name);
-	return false;
+	if (!result)
+		LOG_ALWAYS("Zone '%s' not found.", zone_name);
+	return result;
 }
 
-extern void logger_show_levels()
+extern void logger_show_zones()
 {
 	for (LoggerZone* cursor = g_logger_zone_list; cursor != NULL; cursor = cursor->next)
-		LOG_ALWAYS("Zone '%s' log level %s.", cursor->filename, ToString(cursor->level));
+		LOG_ALWAYS("Zone '%s' log level %s.", cursor->zone, ToString(cursor->level));
 }
 
