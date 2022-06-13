@@ -12,6 +12,7 @@ LOGGER_ZONE(LOGGER_TEST);
 
 static std::vector<std::string> g_logs;
 
+
 extern void logger_format_message(LoggerLevel level, const char* zone, const char* format, ...)
 {
 	va_list args;
