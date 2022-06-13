@@ -55,7 +55,7 @@ struct LoggerZone
 typedef struct LoggerZone LoggerZone;
 
 
-#define LOGGER_ZONE(ZONE) static LoggerZone g_logger_zone = { LOGGER_LEVEL_INVALID, NULL, NULL }; static __attribute__((constructor)) void logger_init_constructor_fn() { logger_internal_initialize_zone(&g_logger_zone, #ZONE); } static_assert(true, "")
+#define LOGGER_ZONE(ZONE) static LoggerZone g_logger_zone = { LOGGER_LEVEL_INVALID, NULL, NULL }; static __attribute__((constructor)) void logger_init_constructor_fn() { logger_internal_initialize_zone(&g_logger_zone, #ZONE); } extern int logger_non_existant_definition
 
 
 #define INTERNAL_LOGGER(LEVEL, FORMAT, ...) do { if (LEVEL >= g_logger_zone.level) logger_format_message(LEVEL, g_logger_zone.zone, FORMAT, ##__VA_ARGS__); } while (0)
