@@ -7,12 +7,12 @@ LIBRARY_BUILD_DIR = $(BUILD_DIR)/library
 TEST_BUILD_DIR = $(BUILD_DIR)/test
 RELEASE_DIR = $(BUILD_DIR)/release
 
-CC = g++
-CFLAGS = -Wall -Werror -DTEST -I$(LIBRARY_BUILD_DIR) -I$(PKG_TEST_DIR) -fsanitize=address -static-libasan -g -Og
-
 SOURCE_DIR = source
 MAIN_SOURCE_DIR = $(SOURCE_DIR)/main
 TEST_SOURCE_DIR = $(SOURCE_DIR)/test
+
+CC = g++
+CFLAGS = -Wall -Werror -DTEST -I$(MAIN_SOURCE_DIR) -I$(PKG_TEST_DIR) -fsanitize=address -static-libasan -g -Og
 
 LIBRARY_FILES = $(notdir $(wildcard $(MAIN_SOURCE_DIR)/*))
 TEST_CPP_SOURCES = $(notdir $(wildcard $(MAIN_SOURCE_DIR)/*.c $(TEST_SOURCE_DIR)/*.cpp $(PKG_TEST_DIR)/*.cpp))
@@ -21,7 +21,9 @@ VPATH = $(MAIN_SOURCE_DIR) : $(TEST_SOURCE_DIR) : $(PKG_TEST_DIR)
 
 .PHONY: default library test release clean
 
-default : release
+default : all
+
+all : release
 
 library : $(LIBRARY_FILES:%=$(LIBRARY_BUILD_DIR)/%)
 

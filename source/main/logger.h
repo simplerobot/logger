@@ -45,6 +45,13 @@ extern bool Parse(LoggerLevel* level, const char* string);
 #define LOG_FATAL(FORMAT, ...)		INTERNAL_LOGGER(LOGGER_LEVEL_FATAL, FORMAT, ##__VA_ARGS__)
 #define LOG_ALWAYS(FORMAT, ...)		INTERNAL_LOGGER(LOGGER_LEVEL_ALWAYS, FORMAT, ##__VA_ARGS__)
 
+#define IS_LOG_TRACE()				INTERNAL_IS_LOGGER(LOGGER_LEVEL_TRACE)
+#define IS_LOG_DEBUG()				INTERNAL_IS_LOGGER(LOGGER_LEVEL_DEBUG)
+#define IS_LOG_INFO()				INTERNAL_IS_LOGGER(LOGGER_LEVEL_INFO)
+#define IS_LOG_WARN()				INTERNAL_IS_LOGGER(LOGGER_LEVEL_WARN)
+#define IS_LOG_ERROR()				INTERNAL_IS_LOGGER(LOGGER_LEVEL_ERROR)
+#define IS_LOG_FATAL()				INTERNAL_IS_LOGGER(LOGGER_LEVEL_FATAL)
+
 
 struct LoggerZone
 {
@@ -57,8 +64,8 @@ typedef struct LoggerZone LoggerZone;
 
 #define LOGGER_ZONE(ZONE) static LoggerZone g_logger_zone = { LOGGER_LEVEL_INVALID, NULL, NULL }; static __attribute__((constructor)) void logger_init_constructor_fn() { logger_internal_initialize_zone(&g_logger_zone, #ZONE); } extern int ensure_zone_is_a_valid_token_ ## ZONE ## _end
 
-
-#define INTERNAL_LOGGER(LEVEL, FORMAT, ...) do { if (LEVEL >= g_logger_zone.level) logger_format_message(LEVEL, g_logger_zone.zone, FORMAT, ##__VA_ARGS__); } while (0)
+#define INTERNAL_IS_LOGGER(LEVEL) ((LEVEL) >= g_logger_zone.level)
+#define INTERNAL_LOGGER(LEVEL, FORMAT, ...) do { if (INTERNAL_IS_LOGGER(LEVEL)) logger_format_message(LEVEL, g_logger_zone.zone, FORMAT, ##__VA_ARGS__); } while (0)
 
 
 extern void logger_internal_initialize_zone(LoggerZone* zone, const char* zone_name);
